@@ -1,15 +1,22 @@
 <template>
 <div id="home">
 <nav-bar class="home-nav"> <div slot="center">购物街</div></nav-bar>
+<tab-control class="tab-control1"  
+            :tabname="['新款','流行','热销']"
+            @tabClick="tabClick"
+            ref="tabcontrol1"
+            v-show="isfixed"
+            ></tab-control>
 <scroll class="content" ref="scroll" @scroll="backtopshow" 
         :probe-type="3" :pullupload="true" @pullingup="loadmore">
 
-<home-swiper :banners="banners"></home-swiper>
+<home-swiper :banners="banners" @swiperimgload="getOffset"></home-swiper>
 <recommend-view :recommends="recommends"></recommend-view>
 <feature-view></feature-view>
 <tab-control class="tab-control"  
             :tabname="['新款','流行','热销']"
-            @tabClick="tabClick"></tab-control>
+            @tabClick="tabClick"
+            ref="tabcontrol2"></tab-control>
 <goods-list :goodslist="goods[this.currentType].list" ></goods-list>
 
 
@@ -60,7 +67,10 @@ export default {
 
             },
             currentType:'pop',
-            isShow:false
+            isShow:false,
+            offsettop:0,
+            isfixed:false,
+            saveY:0
             
         }
     },
@@ -81,6 +91,18 @@ export default {
         this.$bus.$on('imageload',()=>{
             refresh()
        })
+    },
+
+    activated(){
+        console.log('actived')
+        this.$refs.scroll.scroll.scrollTo(0,this.saveY,300)
+        this.$refs.scroll.refresh()
+        
+    },
+    deactivated(){
+        this.saveY = this.$refs.scroll.getY()
+        console.log('deactivated')
+        console.log(this.saveY)
     },
     methods:{
         /*
@@ -120,24 +142,31 @@ export default {
                     break;
 
             }
+            this.$refs.tabcontrol1.currentIndex=index
+            this.$refs.tabcontrol2.currentIndex=index
+
         },
 
 
         backClick(){
-            this.$refs.scroll.scrolltop(0,0)
+            this.$refs.scroll.scrollto(0,0)
             //原生的回到顶部
             // document.body.scrollTop = document.documentElement.scrollTop = 0
             console.log('---')
         },
 
         backtopshow(position){
-            if(-position.y>1000){
-                this.isShow = true
-                }
-                else{
-                    this.isShow =false
-                }
-            // this.isShow = (-position.y) > 1000
+            // if(-position.y>1000){
+            //     this.isShow = true
+            //     }
+            //     else{
+            //         this.isShow =false
+            //     }
+
+
+            this.isShow = (-position.y) > 1000
+            this.isfixed = (-position.y) > this.offsettop
+            this.saveY = position.y || 0
         },
         
 
@@ -146,7 +175,11 @@ export default {
             this.getHomeGoodsdata(this.currentType)
         },
 
+        getOffset(){
+            console.log('swiperimgload')
+            this.offsettop = this.$refs.tabcontrol2.$el.offsetTop
 
+        }
 
     
         },
@@ -183,5 +216,9 @@ export default {
     bottom:49px;
     left:0px;
     right:0px;
+}
+.tab-control1{
+
+    z-index: 2;
 }
 </style>

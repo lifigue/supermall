@@ -2,7 +2,7 @@
   <swiper class="swiper" :options="swiperOption" >
     <swiper-slide v-for="(item,index) in banners" :key="index">
         <a :href="item.link">
-            <img :src="item.image">
+            <img :src="item.image" @load="swiperimgload">
         </a>
     </swiper-slide>
 
@@ -39,7 +39,8 @@ export default {
           navigation: {
             nextEl: '.swiper-button-next',
             prevEl: '.swiper-button-prev'
-          }
+          },
+          isload:false
         }
       }
     },
@@ -50,6 +51,15 @@ export default {
               return []
           }
         }
+    },
+    methods:{
+      swiperimgload(){
+        if(!this.isload){
+            this.$emit('swiperimgload')
+            this.isload=true
+        }
+
+      }
     }
 }
 </script>
